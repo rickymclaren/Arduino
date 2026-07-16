@@ -118,11 +118,6 @@ void loop() {
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.drawString(getDateString(), tft.width()/2, 200);
     
-    // Status
-    tft.setTextSize(1);
-    tft.setTextColor(TFT_GREEN, TFT_BLACK);
-    tft.drawString("ESP32-2432S028  |  NTP Time", tft.width()/2, 290);
-    
     // Update Temperature
     if (firstDraw || abs(temperature - lastTemp) > 0.1) {
       tft.setTextSize(2);
