@@ -15,6 +15,8 @@
 #define SDA_PIN 27
 #define SCL_PIN 22
 
+#define BACKLIGHT_PIN 27
+
 // ================== CONFIG ==================
 const char* ssid = SECRET_SSID;
 const char* password = SECRET_PASS;
@@ -53,8 +55,8 @@ void setup() {
   tft.fillScreen(TFT_BLACK);
   
   // Backlight ON (usually pin 21 on this board)
-  pinMode(21, OUTPUT);
-  digitalWrite(21, HIGH);
+  pinMode(BACKLIGHT_PIN, OUTPUT);
+  digitalWrite(BACKLIGHT_PIN, HIGH);
 
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   tft.setTextDatum(MC_DATUM);   // Center alignment
