@@ -103,6 +103,8 @@ void loop() {
 
     if (firstDraw) {
       tft.fillScreen(TFT_BLACK);
+      tft.drawFastHLine(0, 70, 320, TFT_NAVY);
+      tft.drawFastHLine(0, 170, 320, TFT_NAVY);
     }
     
     // Big Time
@@ -112,7 +114,7 @@ void loop() {
     
     // Seconds
     tft.setTextSize(3);
-    tft.setTextColor(TFT_CYAN, TFT_BLACK);
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
     tft.drawString(secStr, tft.width()/2 + 115, 35);
     
     // Date
@@ -156,6 +158,6 @@ String getDateString() {
   struct tm *timeinfo = localtime(&rawTime);
   
   char buffer[40];
-  strftime(buffer, sizeof(buffer), "%A, %B %d %Y", timeinfo);
+  strftime(buffer, sizeof(buffer), "  %A, %B %d %Y  ", timeinfo);
   return String(buffer);
 }
