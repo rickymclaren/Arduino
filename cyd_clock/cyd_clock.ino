@@ -110,8 +110,8 @@ void loop() {
     
     // Seconds
     tft.setTextSize(3);
-    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-    tft.drawString(secStr, tft.width()/2 + 115, 55);
+    tft.setTextColor(TFT_CYAN, TFT_BLACK);
+    tft.drawString(secStr, tft.width()/2 + 115, 35);
     
     // Date
     tft.setTextSize(2);
@@ -121,7 +121,7 @@ void loop() {
     // Update Temperature
     if (firstDraw || abs(temperature - lastTemp) > 0.1) {
       tft.setTextSize(2);
-      tft.setTextColor(TFT_RED, TFT_BLACK);
+      tft.setTextColor(TFT_GREEN, TFT_BLACK);
       tft.drawString("Temp : " + String(temperature, 1) + " C", tft.width()/2, 90);
       lastTemp = temperature;
     }
@@ -129,7 +129,7 @@ void loop() {
     // Update Humidity
     if (firstDraw || abs(hum - lastHum) > 0.2) {
       tft.setTextSize(2);
-      tft.setTextColor(TFT_BLUE, TFT_BLACK);
+      tft.setTextColor(TFT_SKYBLUE, TFT_BLACK);
       tft.drawString("Hum  : " + String(hum, 1) + " %", tft.width()/2, 120);
       lastHum = hum;
     }
@@ -137,7 +137,7 @@ void loop() {
     // Update Pressure
     if (firstDraw || abs(pressure - lastPress) > 0.3) {
       tft.setTextSize(2);
-      tft.setTextColor(TFT_GREEN, TFT_BLACK);
+      tft.setTextColor(TFT_MAGENTA, TFT_BLACK);
       tft.drawString("Press: " + String(pressure, 1) + " hPa", tft.width()/2, 150);
       lastPress = pressure;
     }
