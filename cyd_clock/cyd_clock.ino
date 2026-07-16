@@ -7,7 +7,13 @@
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 #include <TFT_eSPI.h>
+#include <Adafruit_AHTX0.h>
+#include <Adafruit_BMP280.h>
 #include <arduino_secrets.h>
+
+// Custom I2C pins
+#define SDA_PIN 27
+#define SCL_PIN 22
 
 // ================== CONFIG ==================
 const char* ssid = SECRET_SSID;
@@ -22,11 +28,25 @@ TFT_eSPI tft = TFT_eSPI();
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds, 60000);
 
+Adafruit_AHTX0 aht;
+Adafruit_BMP280 bmp;
+
+// Variables for flicker reduction
+String lastTime = "";
+float lastTemp = -999;
+float lastHum = -999;
+float lastPress = -999;
+String lastDate = "";
+bool firstDraw = true;
+
 unsigned long lastUpdate = 0;
 
 void setup() {
   Serial.begin(115200);
   
+  // Initialize I2C with custom pins
+  Wire.begin(SDA_PIN, SCL_PIN);
+
   // Initialize the ILI9341 display
   tft.init();
   tft.setRotation(3);           // 1 = Landscape (most common for this board)
@@ -38,6 +58,12 @@ void setup() {
 
   tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   tft.setTextDatum(MC_DATUM);   // Center alignment
+
+  // Initialize Sensors
+  if (!aht.begin()) Serial.println("AHT20 not found!");
+  if (!bmp.begin(0x77)) {       // Change to 0x77 if needed
+    Serial.println("BMP280 not found!");
+  }
 
   tft.setTextSize(2);
   tft.drawString("Connecting to WiFi...", tft.width()/2, tft.height()/2 - 20);
@@ -66,17 +92,26 @@ void loop() {
     String timeStr = timeClient.getFormattedTime().substring(0, 5); // HH:MM
     String secStr   = timeClient.getFormattedTime().substring(6, 8);
     
-    tft.fillScreen(TFT_BLACK);
+    sensors_event_t humidity, temp;
+    aht.getEvent(&humidity, &temp);
+
+    float temperature = temp.temperature;
+    float hum = humidity.relative_humidity;
+    float pressure = bmp.readPressure() / 100.0F;
+
+    if (firstDraw) {
+      tft.fillScreen(TFT_BLACK);
+    }
     
     // Big Time
     tft.setTextSize(5);
     tft.setTextColor(TFT_CYAN, TFT_BLACK);
-    tft.drawString(timeStr, tft.width()/2, 85);
+    tft.drawString(timeStr, tft.width()/2, 35);
     
     // Seconds
     tft.setTextSize(3);
     tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-    tft.drawString(secStr, tft.width()/2 + 115, 105);
+    tft.drawString(secStr, tft.width()/2 + 115, 55);
     
     // Date
     tft.setTextSize(2);
@@ -88,6 +123,31 @@ void loop() {
     tft.setTextColor(TFT_GREEN, TFT_BLACK);
     tft.drawString("ESP32-2432S028  |  NTP Time", tft.width()/2, 290);
     
+    // Update Temperature
+    if (firstDraw || abs(temperature - lastTemp) > 0.1) {
+      tft.setTextSize(2);
+      tft.setTextColor(TFT_RED, TFT_BLACK);
+      tft.drawString("Temp : " + String(temperature, 1) + " C", tft.width()/2, 90);
+      lastTemp = temperature;
+    }
+
+    // Update Humidity
+    if (firstDraw || abs(hum - lastHum) > 0.2) {
+      tft.setTextSize(2);
+      tft.setTextColor(TFT_BLUE, TFT_BLACK);
+      tft.drawString("Hum  : " + String(hum, 1) + " %", tft.width()/2, 120);
+      lastHum = hum;
+    }
+
+    // Update Pressure
+    if (firstDraw || abs(pressure - lastPress) > 0.3) {
+      tft.setTextSize(2);
+      tft.setTextColor(TFT_GREEN, TFT_BLACK);
+      tft.drawString("Press: " + String(pressure, 1) + " hPa", tft.width()/2, 150);
+      lastPress = pressure;
+    }
+
+    firstDraw = false;
     lastUpdate = millis();
   }
   
