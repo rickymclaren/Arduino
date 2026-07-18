@@ -91,8 +91,7 @@ void loop() {
   if (millis() - lastUpdate >= 1000) {
     timeClient.update();
     
-    String timeStr = timeClient.getFormattedTime().substring(0, 5); // HH:MM
-    String secStr   = timeClient.getFormattedTime().substring(6, 8);
+    String timeStr = timeClient.getFormattedTime(); // HH:MM:SS
     
     sensors_event_t humidity, temp;
     aht.getEvent(&humidity, &temp);
@@ -113,13 +112,8 @@ void loop() {
     
     // Big Time
     tft.setTextSize(5);
-    tft.setTextColor(TFT_CYAN, TFT_BLACK);
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.drawString(timeStr, tft.width()/2, 35);
-    
-    // Seconds
-    tft.setTextSize(3);
-    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-    tft.drawString(secStr, tft.width()/2 + 115, 35);
     
     // Date
     tft.setTextSize(2);
@@ -177,6 +171,7 @@ String getDateString() {
 void drawThermometer(int x, int y) {
   tft.fillRect(x + 8, y, 14, 48, TFT_WHITE);           // Tube
   tft.fillRect(x + 10, y + 4, 10, 38, TFT_BLACK);
+  tft.fillRect(x + 14, y + 14, 3, 28, TFT_RED);
   tft.fillCircle(x + 15, y + 52, 14, TFT_RED);         // Bulb
   tft.fillCircle(x + 11, y + 48, 3, TFT_PINK);
   
@@ -189,7 +184,7 @@ void drawThermometer(int x, int y) {
 void drawDroplet(int x, int y) {
   tft.fillCircle(x + 15, y + 20, 17, TFT_CYAN);
   tft.fillTriangle(x - 2, y + 24, x + 32, y + 24, x + 15, y + 48, TFT_CYAN);
-  tft.fillCircle(x + 13, y + 17, 9, TFT_WHITE);   // Highlight
+  tft.fillCircle(x + 10, y + 15, 4, TFT_SKYBLUE);   // Highlight
 }
 
 void drawPressureIcon(int x, int y) {
