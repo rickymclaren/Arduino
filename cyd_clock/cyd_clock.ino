@@ -178,10 +178,10 @@ void drawThermometer(int x, int y) {
   tft.fillRect(x + 8, y, 14, 48, TFT_WHITE);           // Tube
   tft.fillRect(x + 10, y + 4, 10, 38, TFT_BLACK);
   tft.fillCircle(x + 15, y + 52, 14, TFT_RED);         // Bulb
-  tft.fillCircle(x + 15, y + 52, 9, TFT_BLACK);
+  tft.fillCircle(x + 11, y + 48, 3, TFT_PINK);
   
   // Scale ticks
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < 4; i++) {
     tft.drawFastHLine(x + 22, y + 10 + i*8, 10, TFT_WHITE);
   }
 }
