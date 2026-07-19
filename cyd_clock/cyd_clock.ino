@@ -113,7 +113,7 @@ void loop() {
     // Big Time
     tft.setTextSize(5);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.drawString(timeStr, tft.width()/2, 35);
+    tft.drawString(timeStr, tft.width()/2, 25);
     
     // Date
     tft.setTextSize(2);
