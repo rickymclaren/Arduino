@@ -3,6 +3,7 @@
    Built-in TFT Display
 */
 
+#include <LVGL_CYD.h>
 #include <WiFi.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
@@ -23,6 +24,13 @@ const char* password = SECRET_PASS;
 
 // Timezone offset in seconds (e.g. GMT+1 = 3600)
 const long utcOffsetInSeconds = 3600;   
+
+// LVGL objects
+static lv_obj_t * time_label;
+static lv_obj_t * date_label;
+static lv_obj_t * temp_label;
+static lv_obj_t * hum_label;
+static lv_obj_t * press_label;
 
 // ===========================================
 
@@ -49,17 +57,9 @@ void setup() {
   // Initialize I2C with custom pins
   Wire.begin(SDA_PIN, SCL_PIN);
 
-  // Initialize the ILI9341 display
-  tft.init();
-  tft.setRotation(3);           // 1 = Landscape (most common for this board)
-  tft.fillScreen(TFT_BLACK);
-  
   // Backlight ON (usually pin 21 on this board)
   pinMode(BACKLIGHT_PIN, OUTPUT);
   digitalWrite(BACKLIGHT_PIN, HIGH);
-
-  tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-  tft.setTextDatum(MC_DATUM);   // Center alignment
 
   // Initialize Sensors
   if (!aht.begin()) Serial.println("AHT20 not found!");
@@ -67,9 +67,6 @@ void setup() {
     Serial.println("BMP280 not found!");
   }
 
-  tft.setTextSize(2);
-  tft.drawString("Connecting to WiFi...", tft.width()/2, tft.height()/2 - 20);
-  
   // Connect WiFi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -82,16 +79,58 @@ void setup() {
 
   timeClient.begin();
   
-  tft.fillScreen(TFT_BLACK);
-  tft.drawString("WiFi Connected!", tft.width()/2, 100);
-  delay(1500);
+  // Start Serial and lvgl, set everything up for this device
+  // Will also do Serial.begin(115200), lvgl.init(), set up the touch driver
+  // and the lvgl timer.
+  LVGL_CYD::begin(USB_LEFT);
+  LVGL_CYD::backlight(255);
+
+  lv_obj_t * screen = lv_scr_act();
+  lv_obj_set_style_bg_color(screen, lv_color_hex(0x112233), LV_PART_MAIN);
+
+  // Time label
+  time_label = lv_label_create(screen);
+  lv_obj_set_style_text_font(time_label, &lv_font_montserrat_28, 0);
+  lv_obj_set_style_text_color(time_label, lv_color_hex(0xFFFFFF), 0);
+  lv_obj_align(time_label, LV_ALIGN_TOP_MID, 0, 20);
+  lv_label_set_text(time_label, "time_str");
+
+  // Date label
+  date_label = lv_label_create(screen);
+  lv_obj_set_style_text_font(date_label, &lv_font_montserrat_18, 0);
+  lv_obj_set_style_text_color(date_label, lv_color_hex(0xAAAAAA), 0);
+  lv_obj_align(date_label, LV_ALIGN_TOP_MID, 0, 60);
+  lv_label_set_text(date_label, "date_str");
+
+  temp_label = lv_label_create(screen);
+  lv_obj_set_style_text_font(temp_label, &lv_font_montserrat_16, 0);
+  lv_obj_set_style_text_color(temp_label, lv_color_hex(0xAAAAAA), 0);
+  lv_obj_align(temp_label, LV_ALIGN_LEFT_MID, 20, 10);
+  lv_label_set_text(temp_label, "temp_str");
+
+  hum_label = lv_label_create(screen);
+  lv_obj_set_style_text_font(hum_label, &lv_font_montserrat_16, 0);
+  lv_obj_set_style_text_color(hum_label, lv_color_hex(0xAAAAAA), 0);
+  lv_obj_align(hum_label, LV_ALIGN_LEFT_MID, 20, 40);
+  lv_label_set_text(hum_label, "hum_str");
+
+  press_label = lv_label_create(screen);
+  lv_obj_set_style_text_font(press_label, &lv_font_montserrat_16, 0);
+  lv_obj_set_style_text_color(press_label, lv_color_hex(0xAAAAAA), 0);
+  lv_obj_align(press_label, LV_ALIGN_LEFT_MID, 20, 70);
+  lv_label_set_text(press_label, "press_str");
+
+  // Create update timer
+  lv_timer_create(update_display, 1000, NULL);
+
 }
 
-void loop() {
-  if (millis() - lastUpdate >= 1000) {
+void update_display(lv_timer_t * timer) {
+    Serial.println("Updating");
+
     timeClient.update();
     
-    String timeStr = timeClient.getFormattedTime(); // HH:MM:SS
+    String time_str = timeClient.getFormattedTime(); // HH:MM:SS
     
     sensors_event_t humidity, temp;
     aht.getEvent(&humidity, &temp);
@@ -100,61 +139,38 @@ void loop() {
     float hum = humidity.relative_humidity;
     float pressure = bmp.readPressure() / 100.0F;
 
-    int w = tft.width();   // 320
-    int colW = w / 3;
+    Serial.print("Time ");
+    Serial.println(time_str);
+    lv_label_set_text(time_label, time_str.c_str());
 
-    if (firstDraw) {
-      tft.fillScreen(TFT_BLACK);
-      drawThermometer(colW/2 - 12, 60);
-      drawDroplet(colW + colW/2 - 12, 60);
-      drawPressureIcon(2*colW + colW/2 - 15, 60);
-    }
-    
-    // Big Time
-    tft.setTextSize(5);
-    tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.drawString(timeStr, tft.width()/2, 25);
-    
-    // Date
-    tft.setTextSize(2);
-    tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.drawString(getDateString(), tft.width()/2, 210);
-    
-    // Update Temperature
-    if (firstDraw || abs(temperature - lastTemp) > 0.1) {
-      tft.setTextColor(TFT_RED, TFT_BLACK);
-      tft.setTextSize(3);
-      tft.drawString(String(temperature, 1), colW/2, 150);
-      tft.setTextSize(2);
-      tft.drawString("C", 1*colW/2, 180);
-      lastTemp = temperature;
-    }
+    String date_str = getDateString();
+    Serial.println(date_str);
+    lv_label_set_text(date_label, date_str.c_str());
 
-    // Update Humidity
-    if (firstDraw || abs(hum - lastHum) > 0.2) {
-      tft.setTextColor(TFT_CYAN, TFT_BLACK);
-      tft.setTextSize(3);
-      tft.drawString(String(hum, 0), 2*colW/2 + colW/2, 150);
-      tft.setTextSize(2);
-      tft.drawString("%", 3*colW/2, 180);
-      lastHum = hum;
-    }
+    char temp_str[32];
+    snprintf(temp_str, sizeof(temp_str), "Temp: %.1f °C", temperature);
+    Serial.print("Temp: ");
+    Serial.println(temp_str);
+    lv_label_set_text(temp_label, temp_str);
 
-    // Update Pressure
-    if (firstDraw || abs(pressure - lastPress) > 0.3) {
-      tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-      tft.setTextSize(3);
-      tft.drawString(String(pressure, 0), 5*colW/2, 150);
-      tft.setTextSize(2);
-      tft.drawString("hPa", 5*colW/2, 180);
-      lastPress = pressure;
-    }
+    char hum_str[32];
+    snprintf(hum_str, sizeof(hum_str), "Hum: %.1f %%", hum);
+    Serial.print("Hum: ");
+    Serial.println(hum_str);
+    lv_label_set_text(hum_label, hum_str);
 
-    firstDraw = false;
-    lastUpdate = millis();
-  }
-  
-  delay(10);
+    char press_str[32];
+    snprintf(press_str, sizeof(press_str), "Pressure: %f hPa", pressure);
+    Serial.print("Press: ");
+    Serial.println(press_str);
+    lv_label_set_text(press_label, press_str);
+}
+
+void loop() {
+    // lvgl needs this to be called in a loop to run the interface
+  lv_task_handler();
+  delay(5);
+
 }
 
 String getDateString() {
@@ -164,40 +180,4 @@ String getDateString() {
   char buffer[40];
   strftime(buffer, sizeof(buffer), "  %A, %B %d %Y  ", timeinfo);
   return String(buffer);
-}
-
-// ===================== ICONS =====================
-
-void drawThermometer(int x, int y) {
-  tft.fillRect(x + 8, y, 14, 48, TFT_WHITE);           // Tube
-  tft.fillRect(x + 10, y + 4, 10, 38, TFT_BLACK);
-  tft.fillRect(x + 14, y + 14, 3, 28, TFT_RED);
-  tft.fillCircle(x + 15, y + 52, 14, TFT_RED);         // Bulb
-  tft.fillCircle(x + 11, y + 48, 3, TFT_PINK);
-  
-  // Scale ticks
-  for (int i = 0; i < 4; i++) {
-    tft.drawFastHLine(x + 22, y + 10 + i*8, 10, TFT_WHITE);
-  }
-}
-
-void drawDroplet(int x, int y) {
-  tft.fillCircle(x + 15, y + 20, 17, TFT_CYAN);
-  tft.fillTriangle(x - 2, y + 24, x + 32, y + 24, x + 15, y + 48, TFT_CYAN);
-  tft.fillCircle(x + 10, y + 15, 4, TFT_SKYBLUE);   // Highlight
-}
-
-void drawPressureIcon(int x, int y) {
-  tft.drawCircle(x + 20, y + 25, 24, TFT_YELLOW);  // Outer
-  tft.drawCircle(x + 20, y + 25, 16, TFT_YELLOW);  // Inner
-  
-  // Needle
-  tft.drawLine(x + 20, y + 25, x + 35, y + 13, TFT_YELLOW);
-  
-  // Ticks
-  for (int i = -30; i <= 30; i += 15) {
-    float rad = i * PI / 180.0;
-    tft.drawLine(x + 20 + 20*cos(rad), y + 25 + 20*sin(rad),
-                 x + 20 + 27*cos(rad), y + 25 + 27*sin(rad), TFT_YELLOW);
-  }
 }
