@@ -54,6 +54,12 @@ unsigned long lastUpdate = 0;
 void setup() {
   Serial.begin(115200);
   
+  // Start Serial and lvgl, set everything up for this device
+  // Will also do Serial.begin(115200), lvgl.init(), set up the touch driver
+  // and the lvgl timer.
+  LVGL_CYD::begin(USB_LEFT);
+  LVGL_CYD::backlight(255);
+
   // Initialize I2C with custom pins
   Wire.begin(SDA_PIN, SCL_PIN);
 
@@ -79,12 +85,6 @@ void setup() {
 
   timeClient.begin();
   
-  // Start Serial and lvgl, set everything up for this device
-  // Will also do Serial.begin(115200), lvgl.init(), set up the touch driver
-  // and the lvgl timer.
-  LVGL_CYD::begin(USB_LEFT);
-  LVGL_CYD::backlight(255);
-
   lv_obj_t * screen = lv_scr_act();
   lv_obj_set_style_bg_color(screen, lv_color_hex(0x112233), LV_PART_MAIN);
 
@@ -139,6 +139,8 @@ void update_display(lv_timer_t * timer) {
     float hum = humidity.relative_humidity;
     float pressure = bmp.readPressure() / 100.0F;
 
+    
+
     Serial.print("Time ");
     Serial.println(time_str);
     lv_label_set_text(time_label, time_str.c_str());
@@ -160,7 +162,7 @@ void update_display(lv_timer_t * timer) {
     lv_label_set_text(hum_label, hum_str);
 
     char press_str[32];
-    snprintf(press_str, sizeof(press_str), "Pressure: %f hPa", pressure);
+    snprintf(press_str, sizeof(press_str), "Pressure: %.0f hPa", pressure);
     Serial.print("Press: ");
     Serial.println(press_str);
     lv_label_set_text(press_label, press_str);
