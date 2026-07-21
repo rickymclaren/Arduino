@@ -35,26 +35,6 @@ static lv_obj_t * temp_label;
 static lv_obj_t * hum_label;
 static lv_obj_t * press_label;
 
-// SVG Data for Humidity Icon (Water Drop) - Embedded SVG string
-// You can replace this with a more complex SVG
-const char humidity_svg[] = 
-"<svg width='200' height='220' viewBox='0 0 200 220' xmlns='http://www.w3.org/2000/svg'>"
-"  <defs>"
-"    <linearGradient id='waterGrad' x1='50%' y1='20%' x2='50%' y2='100%'>"
-"      <stop offset='0%' stop-color='#81E4FF'/>"
-"      <stop offset='100%' stop-color='#4FC3F7'/>"
-"    </linearGradient>"
-"  </defs>"
-"  <!-- Main water drop -->"
-"  <path d='M100 30 Q50 120 50 160 Q50 190 80 205 Q100 215 120 205 Q150 190 150 160 Q150 120 100 30 Z' "
-"        fill='url(#waterGrad)' stroke='#0288D1' stroke-width='12'/>"
-"  <!-- Inner highlight -->"
-"  <path d='M100 45 Q65 115 72 155 Q80 170 95 175' fill='none' stroke='#E0F7FA' stroke-width='18' opacity='0.75'/>"
-"  <!-- Ripples -->"
-"  <ellipse cx='100' cy='135' rx='32' ry='12' fill='none' stroke='#E0F7FA' stroke-width='6' opacity='0.7'/>"
-"  <ellipse cx='100' cy='165' rx='24' ry='9' fill='none' stroke='#E0F7FA' stroke-width='5' opacity='0.6'/>"
-"</svg>";
-
 // ===========================================
 
 TFT_eSPI tft = TFT_eSPI();
@@ -116,6 +96,7 @@ void setup() {
   lv_obj_set_style_text_font(time_label, &lv_font_montserrat_28, 0);
   lv_obj_set_style_text_color(time_label, lv_color_hex(0xFFFFFF), 0);
   lv_obj_align(time_label, LV_ALIGN_TOP_MID, 0, 20);
+  lv_obj_set_style_text_align(time_label, LV_TEXT_ALIGN_LEFT, 0); 
   lv_label_set_text(time_label, "time_str");
 
   // Date label
@@ -128,29 +109,26 @@ void setup() {
   temp_label = lv_label_create(screen);
   lv_obj_set_style_text_font(temp_label, &lv_font_montserrat_16, 0);
   lv_obj_set_style_text_color(temp_label, lv_color_hex(0xAAAAAA), 0);
-  lv_obj_align(temp_label, LV_ALIGN_LEFT_MID, 20, 10);
+  lv_obj_align(temp_label, LV_ALIGN_LEFT_MID, 20, 100);
   lv_label_set_text(temp_label, "temp_str");
 
   hum_label = lv_label_create(screen);
   lv_obj_set_style_text_font(hum_label, &lv_font_montserrat_16, 0);
   lv_obj_set_style_text_color(hum_label, lv_color_hex(0xAAAAAA), 0);
-  lv_obj_align(hum_label, LV_ALIGN_LEFT_MID, 20, 40);
+  lv_obj_align(hum_label, LV_ALIGN_LEFT_MID, 130, 100);
   lv_label_set_text(hum_label, "hum_str");
 
   press_label = lv_label_create(screen);
   lv_obj_set_style_text_font(press_label, &lv_font_montserrat_16, 0);
   lv_obj_set_style_text_color(press_label, lv_color_hex(0xAAAAAA), 0);
-  lv_obj_align(press_label, LV_ALIGN_LEFT_MID, 20, 70);
+  lv_obj_align(press_label, LV_ALIGN_LEFT_MID, 230, 100);
   lv_label_set_text(press_label, "press_str");
 
-  // Create image object and set SVG source (ThorVG handles parsing & rendering)
-  lv_obj_t *img = lv_img_create(screen);
-  lv_obj_align(img, LV_ALIGN_CENTER, 0, -20);
-  
-  lv_img_set_src(img, humidity_svg);   // ThorVG decodes this SVG
+// Create icons in a row
+  create_temp_icon(screen, -110, 30);
+  create_humidity_icon(screen, 0, 25);
+  create_pressure_icon(screen, 105, 25);  
 
-  // Optional: Scale the image
-  lv_img_set_zoom(img, 280);           // 280% zoom (adjust for your display)
   // Create update timer
   lv_timer_create(update_display, 1000, NULL);
 
@@ -181,19 +159,19 @@ void update_display(lv_timer_t * timer) {
     lv_label_set_text(date_label, date_str.c_str());
 
     char temp_str[32];
-    snprintf(temp_str, sizeof(temp_str), "Temp: %.1f °C", temperature);
+    snprintf(temp_str, sizeof(temp_str), "%.1f °C", temperature);
     Serial.print("Temp: ");
     Serial.println(temp_str);
     lv_label_set_text(temp_label, temp_str);
 
     char hum_str[32];
-    snprintf(hum_str, sizeof(hum_str), "Hum: %.1f %%", hum);
+    snprintf(hum_str, sizeof(hum_str), "%.1f %%", hum);
     Serial.print("Hum: ");
     Serial.println(hum_str);
     lv_label_set_text(hum_label, hum_str);
 
     char press_str[32];
-    snprintf(press_str, sizeof(press_str), "Pressure: %.0f hPa", pressure);
+    snprintf(press_str, sizeof(press_str), "%.0f hPa", pressure);
     Serial.print("Press: ");
     Serial.println(press_str);
     lv_label_set_text(press_label, press_str);
@@ -214,3 +192,139 @@ String getDateString() {
   strftime(buffer, sizeof(buffer), "  %A, %B %d %Y  ", timeinfo);
   return String(buffer);
 }
+
+// Temperature Icon (Thermometer)
+void create_temp_icon(lv_obj_t *parent, lv_coord_t x, lv_coord_t y) {
+  lv_obj_t *cont = lv_obj_create(parent);
+  lv_obj_set_size(cont, 82, 120);
+  lv_obj_align(cont, LV_ALIGN_CENTER, x, y);
+  lv_obj_set_style_bg_opa(cont, LV_OPA_TRANSP, 0);
+  lv_obj_set_style_border_opa(cont, LV_OPA_TRANSP, 0);
+  lv_obj_clear_flag(cont, LV_OBJ_FLAG_SCROLLABLE);
+
+  // Glass tube
+  lv_obj_t *tube = lv_obj_create(cont);
+  lv_obj_set_size(tube, 26, 78);
+  lv_obj_align(tube, LV_ALIGN_BOTTOM_MID, 0, -12);
+  lv_obj_set_style_bg_color(tube, lv_color_hex(0xFF5252), 0);
+  lv_obj_set_style_radius(tube, 13, 0);
+  lv_obj_set_style_border_width(tube, 8, 0);
+  lv_obj_set_style_border_color(tube, lv_color_hex(0xFF8A65), 0);
+
+  // Red bulb
+  lv_obj_t *bulb = lv_obj_create(cont);
+  lv_obj_set_size(bulb, 38, 38);
+  lv_obj_align(bulb, LV_ALIGN_BOTTOM_MID, 0, 2);
+  lv_obj_set_style_bg_color(bulb, lv_color_hex(0xFF1744), 0);
+  lv_obj_set_style_radius(bulb, LV_RADIUS_CIRCLE, 0);
+  lv_obj_set_style_border_width(bulb, 6, 0);
+  lv_obj_set_style_border_color(bulb, lv_color_hex(0xFF8A65), 0);
+
+  // Temperature marks
+  for (int i = 0; i < 4; i++) {
+    lv_obj_t *mark = lv_obj_create(cont);
+    lv_obj_set_size(mark, 10, 3);
+    lv_obj_align(mark, LV_ALIGN_TOP_MID, 18, 15 + i * 13);
+    lv_obj_set_style_bg_color(mark, lv_color_white(), 0);
+  }
+
+}
+
+// Humidity Icon (Water Drop - pure vector)
+void create_humidity_icon(lv_obj_t *parent, lv_coord_t x, lv_coord_t y) {
+  lv_obj_t *cont = lv_obj_create(parent);
+  lv_obj_set_size(cont, 90, 110);
+  lv_obj_align(cont, LV_ALIGN_CENTER, x, y);
+  lv_obj_set_style_bg_opa(cont, LV_OPA_TRANSP, 0);
+  lv_obj_set_style_border_opa(cont, LV_OPA_TRANSP, 0);
+  lv_obj_clear_flag(cont, LV_OBJ_FLAG_SCROLLABLE);
+
+  // Main drop
+  lv_obj_t *drop = lv_obj_create(cont);
+  lv_obj_set_size(drop, 68, 82);
+  lv_obj_align(drop, LV_ALIGN_CENTER, 0, 8);
+  lv_obj_set_style_bg_color(drop, lv_color_hex(0x40C4FF), 0);
+  lv_obj_set_style_radius(drop, 60, 0);           // Makes it teardrop-like
+  lv_obj_set_style_border_width(drop, 10, 0);
+  lv_obj_set_style_border_color(drop, lv_color_hex(0x0277BD), 0);
+  lv_obj_clear_flag(drop, LV_OBJ_FLAG_SCROLLABLE);
+
+  // Top point cover (makes it pointed)
+  // lv_obj_t *top = lv_obj_create(cont);
+  // lv_obj_set_size(top, 52, 38);
+  // lv_obj_align(top, LV_ALIGN_TOP_MID, 0, 12);
+  // lv_obj_set_style_bg_color(top, lv_color_hex(0x40C4FF), 0);
+  // lv_obj_set_style_border_opa(top, LV_OPA_TRANSP, 0);
+  // lv_obj_clear_flag(top, LV_OBJ_FLAG_SCROLLABLE);
+
+  // Highlight
+  lv_obj_t *highlight = lv_obj_create(cont);
+  lv_obj_set_size(highlight, 12, 16);
+  lv_obj_align(highlight, LV_ALIGN_TOP_MID, -12, 28);
+  lv_obj_set_style_bg_color(highlight, lv_color_white(), 0);
+  lv_obj_set_style_bg_opa(highlight, 90, 0);
+  lv_obj_set_style_radius(highlight, 20, 0);
+  lv_obj_clear_flag(highlight, LV_OBJ_FLAG_SCROLLABLE);
+
+  // Ripples
+  // lv_obj_t *r1 = lv_obj_create(cont);
+  // lv_obj_set_size(r1, 42, 8);
+  // lv_obj_align(r1, LV_ALIGN_CENTER, 0, 28);
+  // lv_obj_set_style_bg_opa(r1, LV_OPA_TRANSP, 0);
+  // lv_obj_set_style_border_width(r1, 4, 0);
+  // lv_obj_set_style_border_color(r1, lv_color_white(), 0);
+  // lv_obj_set_style_radius(r1, LV_RADIUS_CIRCLE, 0);
+  // lv_obj_clear_flag(r1, LV_OBJ_FLAG_SCROLLABLE);
+
+  // lv_obj_t *r2 = lv_obj_create(cont);
+  // lv_obj_set_size(r2, 28, 6);
+  // lv_obj_align(r2, LV_ALIGN_CENTER, 0, 48);
+  // lv_obj_set_style_bg_opa(r2, LV_OPA_TRANSP, 0);
+  // lv_obj_set_style_border_width(r2, 3, 0);
+  // lv_obj_set_style_border_color(r2, lv_color_white(), 0);
+  // lv_obj_set_style_radius(r2, LV_RADIUS_CIRCLE, 0);
+  // lv_obj_clear_flag(r2, LV_OBJ_FLAG_SCROLLABLE);
+}
+
+// Pressure Icon (Barometer style)
+void create_pressure_icon(lv_obj_t *parent, lv_coord_t x, lv_coord_t y) {
+  lv_obj_t *cont = lv_obj_create(parent);
+  lv_obj_set_size(cont, 92, 110);
+  lv_obj_align(cont, LV_ALIGN_CENTER, x, y);
+  lv_obj_set_style_bg_opa(cont, LV_OPA_TRANSP, 0);
+  lv_obj_set_style_border_opa(cont, LV_OPA_TRANSP, 0);
+  lv_obj_clear_flag(cont, LV_OBJ_FLAG_SCROLLABLE);
+
+  // Outer dial
+  lv_obj_t *dial = lv_obj_create(cont);
+  lv_obj_set_size(dial, 78, 78);
+  lv_obj_align(dial, LV_ALIGN_TOP_MID, 0, 8);
+  lv_obj_set_style_bg_opa(dial, LV_OPA_TRANSP, 0);
+  lv_obj_set_style_border_width(dial, 12, 0);
+  lv_obj_set_style_border_color(dial, lv_color_hex(0x78909C), 0);
+  lv_obj_set_style_radius(dial, LV_RADIUS_CIRCLE, 0);
+
+  // Inner dial
+  lv_obj_t *inner = lv_obj_create(cont);
+  lv_obj_set_size(inner, 52, 52);
+  lv_obj_align(inner, LV_ALIGN_TOP_MID, 0, 21);
+  lv_obj_set_style_bg_color(inner, lv_color_hex(0x263238), 0);
+  lv_obj_set_style_radius(inner, LV_RADIUS_CIRCLE, 0);
+
+  // Needle
+  lv_obj_t *needle = lv_obj_create(cont);
+  lv_obj_set_size(needle, 6, 36);
+  lv_obj_align(needle, LV_ALIGN_TOP_MID, 0, 23);
+  lv_obj_set_style_bg_color(needle, lv_color_hex(0xFF7043), 0);
+  lv_obj_set_style_transform_pivot_x(needle, 3, 0);
+  lv_obj_set_style_transform_angle(needle, 280, 0);   // Pointing to a value
+
+  // Center knob
+  lv_obj_t *knob = lv_obj_create(cont);
+  lv_obj_set_size(knob, 14, 14);
+  lv_obj_align(knob, LV_ALIGN_TOP_MID, 0, 48);
+  lv_obj_set_style_bg_color(knob, lv_color_white(), 0);
+  lv_obj_set_style_radius(knob, LV_RADIUS_CIRCLE, 0);
+
+}
+
