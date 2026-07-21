@@ -3,6 +3,9 @@
    Built-in TFT Display
 */
 
+#define LV_CONF_INCLUDE_SIMPLE
+
+#include <string.h>
 #include <LVGL_CYD.h>
 #include <WiFi.h>
 #include <NTPClient.h>
@@ -31,6 +34,26 @@ static lv_obj_t * date_label;
 static lv_obj_t * temp_label;
 static lv_obj_t * hum_label;
 static lv_obj_t * press_label;
+
+// SVG Data for Humidity Icon (Water Drop) - Embedded SVG string
+// You can replace this with a more complex SVG
+const char humidity_svg[] = 
+"<svg width='200' height='220' viewBox='0 0 200 220' xmlns='http://www.w3.org/2000/svg'>"
+"  <defs>"
+"    <linearGradient id='waterGrad' x1='50%' y1='20%' x2='50%' y2='100%'>"
+"      <stop offset='0%' stop-color='#81E4FF'/>"
+"      <stop offset='100%' stop-color='#4FC3F7'/>"
+"    </linearGradient>"
+"  </defs>"
+"  <!-- Main water drop -->"
+"  <path d='M100 30 Q50 120 50 160 Q50 190 80 205 Q100 215 120 205 Q150 190 150 160 Q150 120 100 30 Z' "
+"        fill='url(#waterGrad)' stroke='#0288D1' stroke-width='12'/>"
+"  <!-- Inner highlight -->"
+"  <path d='M100 45 Q65 115 72 155 Q80 170 95 175' fill='none' stroke='#E0F7FA' stroke-width='18' opacity='0.75'/>"
+"  <!-- Ripples -->"
+"  <ellipse cx='100' cy='135' rx='32' ry='12' fill='none' stroke='#E0F7FA' stroke-width='6' opacity='0.7'/>"
+"  <ellipse cx='100' cy='165' rx='24' ry='9' fill='none' stroke='#E0F7FA' stroke-width='5' opacity='0.6'/>"
+"</svg>";
 
 // ===========================================
 
@@ -120,6 +143,14 @@ void setup() {
   lv_obj_align(press_label, LV_ALIGN_LEFT_MID, 20, 70);
   lv_label_set_text(press_label, "press_str");
 
+  // Create image object and set SVG source (ThorVG handles parsing & rendering)
+  lv_obj_t *img = lv_img_create(screen);
+  lv_obj_align(img, LV_ALIGN_CENTER, 0, -20);
+  
+  lv_img_set_src(img, humidity_svg);   // ThorVG decodes this SVG
+
+  // Optional: Scale the image
+  lv_img_set_zoom(img, 280);           // 280% zoom (adjust for your display)
   // Create update timer
   lv_timer_create(update_display, 1000, NULL);
 
