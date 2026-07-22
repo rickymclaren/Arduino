@@ -5,7 +5,6 @@
 
 #define LV_CONF_INCLUDE_SIMPLE
 
-#include <string.h>
 #include <LVGL_CYD.h>
 #include <WiFi.h>
 #include <NTPClient.h>
@@ -29,13 +28,6 @@ const char* password = SECRET_PASS;
 // Timezone offset in seconds (e.g. GMT+1 = 3600)
 const long utcOffsetInSeconds = 3600;   
 
-// LVGL objects
-static lv_obj_t * time_label;
-static lv_obj_t * date_label;
-static lv_obj_t * temp_label;
-static lv_obj_t * hum_label;
-static lv_obj_t * press_label;
-
 // ===========================================
 
 TFT_eSPI tft = TFT_eSPI();
@@ -44,16 +36,6 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds, 60000);
 
 Adafruit_AHTX0 aht;
 Adafruit_BMP280 bmp;
-
-// Variables for flicker reduction
-String lastTime = "";
-float lastTemp = -999;
-float lastHum = -999;
-float lastPress = -999;
-String lastDate = "";
-bool firstDraw = true;
-
-unsigned long lastUpdate = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -154,138 +136,4 @@ String getDateString() {
   return String(buffer);
 }
 
-// Temperature Icon (Thermometer)
-void create_temp_icon(lv_obj_t *parent, lv_coord_t x, lv_coord_t y) {
-  lv_obj_t *cont = lv_obj_create(parent);
-  lv_obj_set_size(cont, 82, 120);
-  lv_obj_align(cont, LV_ALIGN_CENTER, x, y);
-  lv_obj_set_style_bg_opa(cont, LV_OPA_TRANSP, 0);
-  lv_obj_set_style_border_opa(cont, LV_OPA_TRANSP, 0);
-  lv_obj_clear_flag(cont, LV_OBJ_FLAG_SCROLLABLE);
-
-  // Glass tube
-  lv_obj_t *tube = lv_obj_create(cont);
-  lv_obj_set_size(tube, 26, 78);
-  lv_obj_align(tube, LV_ALIGN_BOTTOM_MID, 0, -12);
-  lv_obj_set_style_bg_color(tube, lv_color_hex(0xFF5252), 0);
-  lv_obj_set_style_radius(tube, 13, 0);
-  lv_obj_set_style_border_width(tube, 8, 0);
-  lv_obj_set_style_border_color(tube, lv_color_hex(0xFF8A65), 0);
-
-  // Red bulb
-  lv_obj_t *bulb = lv_obj_create(cont);
-  lv_obj_set_size(bulb, 38, 38);
-  lv_obj_align(bulb, LV_ALIGN_BOTTOM_MID, 0, 2);
-  lv_obj_set_style_bg_color(bulb, lv_color_hex(0xFF1744), 0);
-  lv_obj_set_style_radius(bulb, LV_RADIUS_CIRCLE, 0);
-  lv_obj_set_style_border_width(bulb, 6, 0);
-  lv_obj_set_style_border_color(bulb, lv_color_hex(0xFF8A65), 0);
-
-  // Temperature marks
-  for (int i = 0; i < 4; i++) {
-    lv_obj_t *mark = lv_obj_create(cont);
-    lv_obj_set_size(mark, 10, 3);
-    lv_obj_align(mark, LV_ALIGN_TOP_MID, 18, 15 + i * 13);
-    lv_obj_set_style_bg_color(mark, lv_color_white(), 0);
-  }
-
-}
-
-// Humidity Icon (Water Drop - pure vector)
-void create_humidity_icon(lv_obj_t *parent, lv_coord_t x, lv_coord_t y) {
-  lv_obj_t *cont = lv_obj_create(parent);
-  lv_obj_set_size(cont, 90, 110);
-  lv_obj_align(cont, LV_ALIGN_CENTER, x, y);
-  lv_obj_set_style_bg_opa(cont, LV_OPA_TRANSP, 0);
-  lv_obj_set_style_border_opa(cont, LV_OPA_TRANSP, 0);
-  lv_obj_clear_flag(cont, LV_OBJ_FLAG_SCROLLABLE);
-
-  // Main drop
-  lv_obj_t *drop = lv_obj_create(cont);
-  lv_obj_set_size(drop, 68, 82);
-  lv_obj_align(drop, LV_ALIGN_CENTER, 0, 8);
-  lv_obj_set_style_bg_color(drop, lv_color_hex(0x40C4FF), 0);
-  lv_obj_set_style_radius(drop, 60, 0);           // Makes it teardrop-like
-  lv_obj_set_style_border_width(drop, 10, 0);
-  lv_obj_set_style_border_color(drop, lv_color_hex(0x0277BD), 0);
-  lv_obj_clear_flag(drop, LV_OBJ_FLAG_SCROLLABLE);
-
-  // Top point cover (makes it pointed)
-  // lv_obj_t *top = lv_obj_create(cont);
-  // lv_obj_set_size(top, 52, 38);
-  // lv_obj_align(top, LV_ALIGN_TOP_MID, 0, 12);
-  // lv_obj_set_style_bg_color(top, lv_color_hex(0x40C4FF), 0);
-  // lv_obj_set_style_border_opa(top, LV_OPA_TRANSP, 0);
-  // lv_obj_clear_flag(top, LV_OBJ_FLAG_SCROLLABLE);
-
-  // Highlight
-  lv_obj_t *highlight = lv_obj_create(cont);
-  lv_obj_set_size(highlight, 12, 16);
-  lv_obj_align(highlight, LV_ALIGN_TOP_MID, -12, 28);
-  lv_obj_set_style_bg_color(highlight, lv_color_white(), 0);
-  lv_obj_set_style_bg_opa(highlight, 90, 0);
-  lv_obj_set_style_radius(highlight, 20, 0);
-  lv_obj_clear_flag(highlight, LV_OBJ_FLAG_SCROLLABLE);
-
-  // Ripples
-  // lv_obj_t *r1 = lv_obj_create(cont);
-  // lv_obj_set_size(r1, 42, 8);
-  // lv_obj_align(r1, LV_ALIGN_CENTER, 0, 28);
-  // lv_obj_set_style_bg_opa(r1, LV_OPA_TRANSP, 0);
-  // lv_obj_set_style_border_width(r1, 4, 0);
-  // lv_obj_set_style_border_color(r1, lv_color_white(), 0);
-  // lv_obj_set_style_radius(r1, LV_RADIUS_CIRCLE, 0);
-  // lv_obj_clear_flag(r1, LV_OBJ_FLAG_SCROLLABLE);
-
-  // lv_obj_t *r2 = lv_obj_create(cont);
-  // lv_obj_set_size(r2, 28, 6);
-  // lv_obj_align(r2, LV_ALIGN_CENTER, 0, 48);
-  // lv_obj_set_style_bg_opa(r2, LV_OPA_TRANSP, 0);
-  // lv_obj_set_style_border_width(r2, 3, 0);
-  // lv_obj_set_style_border_color(r2, lv_color_white(), 0);
-  // lv_obj_set_style_radius(r2, LV_RADIUS_CIRCLE, 0);
-  // lv_obj_clear_flag(r2, LV_OBJ_FLAG_SCROLLABLE);
-}
-
-// Pressure Icon (Barometer style)
-void create_pressure_icon(lv_obj_t *parent, lv_coord_t x, lv_coord_t y) {
-  lv_obj_t *cont = lv_obj_create(parent);
-  lv_obj_set_size(cont, 92, 110);
-  lv_obj_align(cont, LV_ALIGN_CENTER, x, y);
-  lv_obj_set_style_bg_opa(cont, LV_OPA_TRANSP, 0);
-  lv_obj_set_style_border_opa(cont, LV_OPA_TRANSP, 0);
-  lv_obj_clear_flag(cont, LV_OBJ_FLAG_SCROLLABLE);
-
-  // Outer dial
-  lv_obj_t *dial = lv_obj_create(cont);
-  lv_obj_set_size(dial, 78, 78);
-  lv_obj_align(dial, LV_ALIGN_TOP_MID, 0, 8);
-  lv_obj_set_style_bg_opa(dial, LV_OPA_TRANSP, 0);
-  lv_obj_set_style_border_width(dial, 12, 0);
-  lv_obj_set_style_border_color(dial, lv_color_hex(0x78909C), 0);
-  lv_obj_set_style_radius(dial, LV_RADIUS_CIRCLE, 0);
-
-  // Inner dial
-  lv_obj_t *inner = lv_obj_create(cont);
-  lv_obj_set_size(inner, 52, 52);
-  lv_obj_align(inner, LV_ALIGN_TOP_MID, 0, 21);
-  lv_obj_set_style_bg_color(inner, lv_color_hex(0x263238), 0);
-  lv_obj_set_style_radius(inner, LV_RADIUS_CIRCLE, 0);
-
-  // Needle
-  lv_obj_t *needle = lv_obj_create(cont);
-  lv_obj_set_size(needle, 6, 36);
-  lv_obj_align(needle, LV_ALIGN_TOP_MID, 0, 23);
-  lv_obj_set_style_bg_color(needle, lv_color_hex(0xFF7043), 0);
-  lv_obj_set_style_transform_pivot_x(needle, 3, 0);
-  lv_obj_set_style_transform_angle(needle, 280, 0);   // Pointing to a value
-
-  // Center knob
-  lv_obj_t *knob = lv_obj_create(cont);
-  lv_obj_set_size(knob, 14, 14);
-  lv_obj_align(knob, LV_ALIGN_TOP_MID, 0, 48);
-  lv_obj_set_style_bg_color(knob, lv_color_white(), 0);
-  lv_obj_set_style_radius(knob, LV_RADIUS_CIRCLE, 0);
-
-}
 
