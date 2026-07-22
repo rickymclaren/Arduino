@@ -14,6 +14,7 @@
 #include <Adafruit_AHTX0.h>
 #include <Adafruit_BMP280.h>
 #include <arduino_secrets.h>
+#include "ui.h"
 
 // Custom I2C pins
 #define SDA_PIN 27
@@ -88,47 +89,7 @@ void setup() {
 
   timeClient.begin();
   
-  lv_obj_t * screen = lv_scr_act();
-  lv_obj_set_style_bg_color(screen, lv_color_hex(0x112233), LV_PART_MAIN);
-
-  // Time label
-  time_label = lv_label_create(screen);
-  lv_obj_set_style_text_font(time_label, &lv_font_montserrat_28, 0);
-  lv_obj_set_style_text_color(time_label, lv_color_hex(0xFFFFFF), 0);
-  lv_obj_align(time_label, LV_ALIGN_TOP_MID, 0, 20);
-  lv_obj_set_style_text_align(time_label, LV_TEXT_ALIGN_LEFT, 0); 
-  lv_label_set_text(time_label, "time_str");
-
-  // Date label
-  date_label = lv_label_create(screen);
-  lv_obj_set_style_text_font(date_label, &lv_font_montserrat_18, 0);
-  lv_obj_set_style_text_color(date_label, lv_color_hex(0xAAAAAA), 0);
-  lv_obj_align(date_label, LV_ALIGN_TOP_MID, 0, 60);
-  lv_label_set_text(date_label, "date_str");
-
-  temp_label = lv_label_create(screen);
-  lv_obj_set_style_text_font(temp_label, &lv_font_montserrat_16, 0);
-  lv_obj_set_style_text_color(temp_label, lv_color_hex(0xAAAAAA), 0);
-  lv_obj_align(temp_label, LV_ALIGN_LEFT_MID, 20, 100);
-  lv_label_set_text(temp_label, "temp_str");
-
-  hum_label = lv_label_create(screen);
-  lv_obj_set_style_text_font(hum_label, &lv_font_montserrat_16, 0);
-  lv_obj_set_style_text_color(hum_label, lv_color_hex(0xAAAAAA), 0);
-  lv_obj_align(hum_label, LV_ALIGN_LEFT_MID, 130, 100);
-  lv_label_set_text(hum_label, "hum_str");
-
-  press_label = lv_label_create(screen);
-  lv_obj_set_style_text_font(press_label, &lv_font_montserrat_16, 0);
-  lv_obj_set_style_text_color(press_label, lv_color_hex(0xAAAAAA), 0);
-  lv_obj_align(press_label, LV_ALIGN_LEFT_MID, 230, 100);
-  lv_label_set_text(press_label, "press_str");
-
-// Create icons in a row
-  create_temp_icon(screen, -110, 30);
-  create_humidity_icon(screen, 0, 25);
-  create_pressure_icon(screen, 105, 25);  
-
+  ui_init();
   // Create update timer
   lv_timer_create(update_display, 1000, NULL);
 
@@ -152,29 +113,29 @@ void update_display(lv_timer_t * timer) {
 
     Serial.print("Time ");
     Serial.println(time_str);
-    lv_label_set_text(time_label, time_str.c_str());
+    lv_label_set_text(ui_time, time_str.c_str());
 
     String date_str = getDateString();
     Serial.println(date_str);
-    lv_label_set_text(date_label, date_str.c_str());
+    lv_label_set_text(ui_date, date_str.c_str());
 
     char temp_str[32];
     snprintf(temp_str, sizeof(temp_str), "%.1f °C", temperature);
     Serial.print("Temp: ");
     Serial.println(temp_str);
-    lv_label_set_text(temp_label, temp_str);
+    lv_label_set_text(ui_temp, temp_str);
 
     char hum_str[32];
     snprintf(hum_str, sizeof(hum_str), "%.1f %%", hum);
     Serial.print("Hum: ");
     Serial.println(hum_str);
-    lv_label_set_text(hum_label, hum_str);
+    lv_label_set_text(ui_hum, hum_str);
 
     char press_str[32];
     snprintf(press_str, sizeof(press_str), "%.0f hPa", pressure);
     Serial.print("Press: ");
     Serial.println(press_str);
-    lv_label_set_text(press_label, press_str);
+    lv_label_set_text(ui_press, press_str);
 }
 
 void loop() {
