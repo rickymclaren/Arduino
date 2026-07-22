@@ -19,8 +19,6 @@
 #define SDA_PIN 27
 #define SCL_PIN 22
 
-#define BACKLIGHT_PIN 27
-
 // ================== CONFIG ==================
 const char* ssid = SECRET_SSID;
 const char* password = SECRET_PASS;
@@ -38,8 +36,7 @@ Adafruit_AHTX0 aht;
 Adafruit_BMP280 bmp;
 
 void setup() {
-  Serial.begin(115200);
-  
+
   // Start Serial and lvgl, set everything up for this device
   // Will also do Serial.begin(115200), lvgl.init(), set up the touch driver
   // and the lvgl timer.
@@ -50,7 +47,9 @@ void setup() {
   Wire.begin(SDA_PIN, SCL_PIN);
 
   // Initialize Sensors
-  if (!aht.begin()) Serial.println("AHT20 not found!");
+  if (!aht.begin()) {
+    Serial.println("AHT20 not found!");
+  }
   if (!bmp.begin(0x77)) {       // Change to 0x77 if needed
     Serial.println("BMP280 not found!");
   }
