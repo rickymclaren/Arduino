@@ -23,7 +23,7 @@ lv_obj_set_x( ui_time, -3 );
 lv_obj_set_y( ui_time, -97 );
 lv_obj_set_align( ui_time, LV_ALIGN_CENTER );
 lv_label_set_text(ui_time,"time");
-lv_obj_set_style_text_font(ui_time, &lv_font_montserrat_20, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_text_font(ui_time, &lv_font_montserrat_28, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_date = lv_label_create(ui_Screen1);
 lv_obj_set_width( ui_date, LV_SIZE_CONTENT);  /// 1
@@ -61,7 +61,7 @@ lv_label_set_text(ui_press,"press");
 lv_obj_set_style_text_font(ui_press, &lv_font_montserrat_20, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_Imagetemp = lv_image_create(ui_Screen1);
-lv_image_set_src(ui_Imagetemp, &ui_img_642415999);
+lv_image_set_src(ui_Imagetemp, &ui_img_1486456472);
 lv_obj_set_width( ui_Imagetemp, LV_SIZE_CONTENT);  /// 1
 lv_obj_set_height( ui_Imagetemp, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_x( ui_Imagetemp, -109 );

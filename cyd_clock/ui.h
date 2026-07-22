@@ -24,7 +24,7 @@ extern "C" {
 extern lv_obj_t *ui____initial_actions0;
 
 // IMAGES AND IMAGE SETS
-LV_IMG_DECLARE( ui_img_642415999);   // assets/vecteezy_thermometer-icon-colorful_19860394.png
+LV_IMG_DECLARE( ui_img_1486456472);   // assets/vecteezy_thermometer-3d-illustration-isolated_48675674.png
 LV_IMG_DECLARE( ui_img_699858216);   // assets/vecteezy_ai-generated-macro-of-fresh-water-droplets_35644659.png
 LV_IMG_DECLARE( ui_img_25776339);   // assets/vecteezy_pressure-gauge-with-green-dial-displaying-measurement-and_65916416.png
 

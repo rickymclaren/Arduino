@@ -49,10 +49,6 @@ void setup() {
   // Initialize I2C with custom pins
   Wire.begin(SDA_PIN, SCL_PIN);
 
-  // Backlight ON (usually pin 21 on this board)
-  pinMode(BACKLIGHT_PIN, OUTPUT);
-  digitalWrite(BACKLIGHT_PIN, HIGH);
-
   // Initialize Sensors
   if (!aht.begin()) Serial.println("AHT20 not found!");
   if (!bmp.begin(0x77)) {       // Change to 0x77 if needed
@@ -90,8 +86,6 @@ void update_display(lv_timer_t * timer) {
     float temperature = temp.temperature;
     float hum = humidity.relative_humidity;
     float pressure = bmp.readPressure() / 100.0F;
-
-    
 
     Serial.print("Time ");
     Serial.println(time_str);
