@@ -6,7 +6,7 @@
 #include "ui.h"
 
 lv_obj_t *uic_time;
-lv_obj_t *ui_Screen1 = NULL;lv_obj_t *ui_time = NULL;lv_obj_t *ui_date = NULL;lv_obj_t *ui_temp = NULL;lv_obj_t *ui_hum = NULL;lv_obj_t *ui_press = NULL;lv_obj_t *ui_Imagetemp = NULL;lv_obj_t *ui_imagehum = NULL;lv_obj_t *ui_imagepress = NULL;
+lv_obj_t *ui_Screen1 = NULL;lv_obj_t *ui_time = NULL;lv_obj_t *ui_date = NULL;lv_obj_t *ui_temp = NULL;lv_obj_t *ui_hum = NULL;lv_obj_t *ui_press = NULL;lv_obj_t *ui_imagepress = NULL;lv_obj_t *ui_ArcHum = NULL;lv_obj_t *ui_BarTemp = NULL;
 // event funtions
 
 // build funtions
@@ -60,28 +60,6 @@ lv_obj_set_align( ui_press, LV_ALIGN_CENTER );
 lv_label_set_text(ui_press,"press");
 lv_obj_set_style_text_font(ui_press, &lv_font_montserrat_20, LV_PART_MAIN| LV_STATE_DEFAULT);
 
-ui_Imagetemp = lv_image_create(ui_Screen1);
-lv_image_set_src(ui_Imagetemp, &ui_img_1486456472);
-lv_obj_set_width( ui_Imagetemp, LV_SIZE_CONTENT);  /// 1
-lv_obj_set_height( ui_Imagetemp, LV_SIZE_CONTENT);   /// 1
-lv_obj_set_x( ui_Imagetemp, -109 );
-lv_obj_set_y( ui_Imagetemp, 14 );
-lv_obj_set_align( ui_Imagetemp, LV_ALIGN_CENTER );
-lv_obj_add_flag( ui_Imagetemp, LV_OBJ_FLAG_CLICKABLE );   /// Flags
-lv_obj_remove_flag( ui_Imagetemp, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
-lv_image_set_scale(ui_Imagetemp,100);
-
-ui_imagehum = lv_image_create(ui_Screen1);
-lv_image_set_src(ui_imagehum, &ui_img_699858216);
-lv_obj_set_width( ui_imagehum, LV_SIZE_CONTENT);  /// 1
-lv_obj_set_height( ui_imagehum, LV_SIZE_CONTENT);   /// 1
-lv_obj_set_x( ui_imagehum, -1 );
-lv_obj_set_y( ui_imagehum, 16 );
-lv_obj_set_align( ui_imagehum, LV_ALIGN_CENTER );
-lv_obj_add_flag( ui_imagehum, LV_OBJ_FLAG_CLICKABLE );   /// Flags
-lv_obj_remove_flag( ui_imagehum, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
-lv_image_set_scale(ui_imagehum,100);
-
 ui_imagepress = lv_image_create(ui_Screen1);
 lv_image_set_src(ui_imagepress, &ui_img_25776339);
 lv_obj_set_width( ui_imagepress, LV_SIZE_CONTENT);  /// 1
@@ -93,6 +71,37 @@ lv_obj_add_flag( ui_imagepress, LV_OBJ_FLAG_CLICKABLE );   /// Flags
 lv_obj_remove_flag( ui_imagepress, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_image_set_scale(ui_imagepress,100);
 
+ui_ArcHum = lv_arc_create(ui_Screen1);
+lv_obj_set_width( ui_ArcHum, 100);
+lv_obj_set_height( ui_ArcHum, 100);
+lv_obj_set_x( ui_ArcHum, -1 );
+lv_obj_set_y( ui_ArcHum, 23 );
+lv_obj_set_align( ui_ArcHum, LV_ALIGN_CENTER );
+lv_arc_set_value(ui_ArcHum, 50);
+lv_obj_set_style_border_color(ui_ArcHum, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_border_opa(ui_ArcHum, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_BarTemp = lv_bar_create(ui_Screen1);
+lv_bar_set_range(ui_BarTemp, 0,40);
+lv_bar_set_value(ui_BarTemp,25,LV_ANIM_OFF);
+lv_bar_set_start_value(ui_BarTemp, 0, LV_ANIM_OFF);
+lv_obj_set_width( ui_BarTemp, 10);
+lv_obj_set_height( ui_BarTemp, 100);
+lv_obj_set_x( ui_BarTemp, -114 );
+lv_obj_set_y( ui_BarTemp, 9 );
+lv_obj_set_align( ui_BarTemp, LV_ALIGN_CENTER );
+lv_obj_set_style_border_color(ui_BarTemp, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_border_opa(ui_BarTemp, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_width(ui_BarTemp, 1, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_side(ui_BarTemp, LV_BORDER_SIDE_FULL, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+lv_obj_set_style_bg_color(ui_BarTemp, lv_color_hex(0xF81515), LV_PART_INDICATOR | LV_STATE_DEFAULT );
+lv_obj_set_style_bg_opa(ui_BarTemp, 255, LV_PART_INDICATOR| LV_STATE_DEFAULT);
+lv_obj_set_style_outline_color(ui_BarTemp, lv_color_hex(0xEB1111), LV_PART_INDICATOR | LV_STATE_DEFAULT );
+lv_obj_set_style_outline_opa(ui_BarTemp, 255, LV_PART_INDICATOR| LV_STATE_DEFAULT);
+
+//Compensating for LVGL9.1 draw crash with bar/slider max value when top-padding is nonzero and right-padding is 0
+if (lv_obj_get_style_pad_top(ui_BarTemp,LV_PART_MAIN) > 0) lv_obj_set_style_pad_right( ui_BarTemp, lv_obj_get_style_pad_right(ui_BarTemp,LV_PART_MAIN) + 1, LV_PART_MAIN );
 uic_time = ui_time;
 
 }
@@ -109,8 +118,8 @@ ui_date= NULL;
 ui_temp= NULL;
 ui_hum= NULL;
 ui_press= NULL;
-ui_Imagetemp= NULL;
-ui_imagehum= NULL;
 ui_imagepress= NULL;
+ui_ArcHum= NULL;
+ui_BarTemp= NULL;
 
 }

@@ -99,12 +99,14 @@ void update_display(lv_timer_t * timer) {
     Serial.print("Temp: ");
     Serial.println(temp_str);
     lv_label_set_text(ui_temp, temp_str);
+    lv_bar_set_value(ui_BarTemp, (int) temperature, LV_ANIM_OFF);
 
     char hum_str[32];
     snprintf(hum_str, sizeof(hum_str), "%.1f %%", hum);
     Serial.print("Hum: ");
     Serial.println(hum_str);
     lv_label_set_text(ui_hum, hum_str);
+    lv_arc_set_value(ui_ArcHum, (int)hum);
 
     char press_str[32];
     snprintf(press_str, sizeof(press_str), "%.0f hPa", pressure);

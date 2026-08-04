@@ -19,9 +19,9 @@ extern lv_obj_t *ui_date;
 extern lv_obj_t *ui_temp;
 extern lv_obj_t *ui_hum;
 extern lv_obj_t *ui_press;
-extern lv_obj_t *ui_Imagetemp;
-extern lv_obj_t *ui_imagehum;
 extern lv_obj_t *ui_imagepress;
+extern lv_obj_t *ui_ArcHum;
+extern lv_obj_t *ui_BarTemp;
 // CUSTOM VARIABLES
 extern lv_obj_t *uic_time;
 
