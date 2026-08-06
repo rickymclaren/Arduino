@@ -69,22 +69,22 @@ void setup() {
   ui_init();
 
   static lv_point_precise_t line_points[] = { 
-    {50, 90}, {55, 90}, 
-    {50, 100}, {55, 100}, 
-    {50, 110}, {55, 110}, 
-    {50, 120}, {55, 120}, 
-    {50, 130}, {60, 130}, 
-    {50, 140}, {55, 140}, 
-    {50, 150}, {55, 150}, 
-    {50, 160}, {55, 160}, 
-    {50, 170}, {55, 170}, 
+    {55, 90}, {65, 90}, 
+    {55, 100}, {65, 100}, 
+    {55, 110}, {65, 110}, 
+    {55, 120}, {65, 120}, 
+    {55, 130}, {70, 130}, 
+    {55, 140}, {65, 140}, 
+    {55, 150}, {65, 150}, 
+    {55, 160}, {65, 160}, 
+    {55, 170}, {65, 170}, 
   };
 
   /*Create style*/
   static lv_style_t style_line;
   lv_style_init(&style_line);
   lv_style_set_line_width(&style_line, 2);
-  lv_style_set_line_color(&style_line, lv_color_hex(0xffffff));
+  lv_style_set_line_color(&style_line, lv_color_hex(0x4f4f4f));
   lv_style_set_line_rounded(&style_line, false);
 
   /*Create a line and apply the new style*/
