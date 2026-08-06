@@ -88,7 +88,7 @@ void setup() {
   lv_style_set_line_rounded(&style_line, false);
 
   /*Create a line and apply the new style*/
-  int lines = sizeof(line_points) / sizeof(line_points[0]);
+  int lines = sizeof(line_points) / sizeof(line_points[0]) / 2;
   for (int i=0; i<lines; i++) {
     lv_obj_t * line1;
     line1 = lv_line_create(lv_scr_act());
