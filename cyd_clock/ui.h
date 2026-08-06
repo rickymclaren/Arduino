@@ -23,9 +23,6 @@ extern "C" {
 // EVENTS
 extern lv_obj_t *ui____initial_actions0;
 
-// IMAGES AND IMAGE SETS
-LV_IMG_DECLARE( ui_img_25776339);   // assets/vecteezy_pressure-gauge-with-green-dial-displaying-measurement-and_65916416.png
-
 // UI INIT
 void ui_init(void);
 void ui_destroy(void);

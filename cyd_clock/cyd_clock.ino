@@ -67,6 +67,35 @@ void setup() {
   timeClient.begin();
   
   ui_init();
+
+  static lv_point_precise_t line_points[] = { 
+    {50, 90}, {55, 90}, 
+    {50, 100}, {55, 100}, 
+    {50, 110}, {55, 110}, 
+    {50, 120}, {55, 120}, 
+    {50, 130}, {60, 130}, 
+    {50, 140}, {55, 140}, 
+    {50, 150}, {55, 150}, 
+    {50, 160}, {55, 160}, 
+    {50, 170}, {55, 170}, 
+  };
+
+  /*Create style*/
+  static lv_style_t style_line;
+  lv_style_init(&style_line);
+  lv_style_set_line_width(&style_line, 2);
+  lv_style_set_line_color(&style_line, lv_color_hex(0xffffff));
+  lv_style_set_line_rounded(&style_line, false);
+
+  /*Create a line and apply the new style*/
+  int lines = sizeof(line_points) / sizeof(line_points[0]);
+  for (int i=0; i<lines; i++) {
+    lv_obj_t * line1;
+    line1 = lv_line_create(lv_scr_act());
+    lv_line_set_points(line1, &line_points[i*2], 2);     /*Set the points*/
+    lv_obj_add_style(line1, &style_line, 0);
+  }
+
   // Create update timer
   lv_timer_create(update_display, 1000, NULL);
 
@@ -99,20 +128,21 @@ void update_display(lv_timer_t * timer) {
     Serial.print("Temp: ");
     Serial.println(temp_str);
     lv_label_set_text(ui_temp, temp_str);
-    lv_bar_set_value(ui_BarTemp, (int) temperature, LV_ANIM_OFF);
+    lv_bar_set_value(ui_BarTemp, (int) (temperature * 10), LV_ANIM_OFF);
 
     char hum_str[32];
     snprintf(hum_str, sizeof(hum_str), "%.1f %%", hum);
     Serial.print("Hum: ");
     Serial.println(hum_str);
     lv_label_set_text(ui_hum, hum_str);
-    lv_arc_set_value(ui_ArcHum, (int)hum);
+    lv_arc_set_value(ui_ArcHumidity, (int) hum);
 
     char press_str[32];
     snprintf(press_str, sizeof(press_str), "%.0f hPa", pressure);
     Serial.print("Press: ");
     Serial.println(press_str);
     lv_label_set_text(ui_press, press_str);
+    lv_arc_set_value(ui_ArcPressure, (int) pressure);
 }
 
 void loop() {
