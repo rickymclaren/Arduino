@@ -113,7 +113,7 @@ void update_display(lv_timer_t * timer) {
 
     float temperature = temp.temperature;
     float hum = humidity.relative_humidity;
-    float pressure = bmp.readPressure() / 100.0F;
+    float pressure = round(bmp.readPressure() / 100.0F);
 
     Serial.print("Time ");
     Serial.println(time_str);
